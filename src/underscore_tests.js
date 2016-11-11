@@ -256,14 +256,28 @@ var _ = { };
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+
+    if(arguments[2] !== undefined) {
+      var args = (Array.from(arguments)).slice(2);
+      setTimeout(function(){func.apply('', args)}, wait);
+    } else {
+      setTimeout(function(){func()}, wait);
+    }
     
-    return setTimeout(func(arguments),wait);  
   };
 
 
 
   // Shuffle an array.
   _.shuffle = function(array) {
+    //My own implementation of a shuffle. 
+    //Randomly remove elements from the array and append them to the end.
+    var temp = array.slice();
+    for(var i = 0; i < array.length*2; i++) {
+      temp.push(temp.splice(Math.floor(Math.random() * array.length),1)[0]);
+    }
+    return temp;  
+
   };
 
   // Sort the object's values by a criterion produced by an iterator.
@@ -279,21 +293,83 @@ var _ = { };
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
   _.zip = function() {
+
+    //Find length of longest input array
+    var max = 0;
+    for(var arg in arguments) {
+      max = (arguments[arg].length > max) ? arguments.length : max;
+    }
+
+    //Now zip the arrays
+    var results = []
+    for(var i = 0; i < max ; i++){
+      var temp = [];
+      for(var arg in arguments) {
+        temp.push(arguments[arg][i]);
+      }
+      results.push(temp);
+    }
+    return results;
   };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
   // The new array should contain all elements of the multidimensional array.
   _.flatten = function(nestedArray, result) {
+    var temp = [];
+    for(var i in nestedArray) {
+      if(Array.isArray(nestedArray[i])) {
+        temp = temp.concat(_.flatten(nestedArray[i]));
+      } else {
+        temp.push(nestedArray[i]);
+      }
+    }
+    return temp;
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
   // every item shared between all the passed-in arrays.
   _.intersection = function() {
+    //The big(O) of this is going to be disgusting
+    
+    var intersections = [];
+    //Go through each array
+    for(var i in arguments) {
+      //Go through each element in each array
+      var curArr = arguments[i];
+      for(var j in curArr) {
+        if(intersections.indexOf(curArr[j]) == -1) {
+          var inAll = true;
+          //Check if the element is in all arrays
+          for(var k in arguments) {
+            inAll = inAll && (arguments[k].indexOf(curArr[j]) >= 0 );
+          }
+          if(inAll) {
+            intersections.push(curArr[j]);
+          }
+        }
+      }  
+    }
+    return intersections;
+
   };
 
   // Take the difference between one array and a number of other arrays.
   // Only the elements present in just the first array will remain.
   _.difference = function(array) {
+
+    var diffs = [];
+    //Go through each array
+    
+    for(var i in array) {
+      var uniq = true;
+      for(var j = 1; j < arguments.length; j++) {
+        uniq = uniq && (arguments[j].indexOf(array[i]) == -1)
+      }
+      if(uniq) {
+        diffs.push(array[i]);
+      }
+    }
+    return diffs;
   };
 
 }).call(this);
